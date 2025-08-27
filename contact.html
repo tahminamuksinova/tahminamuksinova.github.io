@@ -128,20 +128,16 @@
           <!-- End Info Item -->
         </div>
 
-        <!-- Contact Form (single form, correct action & scripts) -->
+        <!-- Contact Form -->
         <div class="row gy-4 mt-2">
           <div class="col-12">
-            <!-- Update the action to match your actual PHP path.
-                 If your file is at /Portfolio/forms/contact.php, keep the leading slash. -->
-            <form
-              id="contactForm"
-              action="/Portfolio/forms/contact.php"
-              method="post"
-              class="php-email-form"
-              data-aos="fade-up"
-              data-aos-delay="600"
-              novalidate
-            >
+            <form id="contactForm"
+                  action="https://formspree.io/f/xjkevnln"
+                  method="POST"
+                  class="php-email-form"
+                  data-aos="fade-up"
+                  data-aos-delay="600"
+                  novalidate>
               <div class="row gy-4">
                 <div class="col-md-6">
                   <input type="text" name="name" class="form-control" placeholder="Your Name" required />
@@ -156,9 +152,9 @@
                   <textarea name="message" class="form-control" rows="6" placeholder="Message" required></textarea>
                 </div>
                 <div class="col-md-12 text-center">
-                  <div class="loading">Loading</div>
-                  <div class="error-message"></div>
-                  <div class="sent-message">Your message has been sent. Thank you!</div>
+                  <div class="loading" style="display:none;">Loading</div>
+                  <div class="error-message" style="display:none;"></div>
+                  <div class="sent-message" style="display:none;">Your message has been sent. Thank you!</div>
                   <button type="submit">Send Message</button>
                 </div>
               </div>
@@ -202,7 +198,6 @@
 
   <!-- Vendor JS Files -->
   <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="assets/vendor/php-email-form/validate.js"></script>
   <script src="assets/vendor/aos/aos.js"></script>
   <script src="assets/vendor/typed.js/typed.umd.js"></script>
   <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
@@ -214,5 +209,48 @@
 
   <!-- Main JS File -->
   <script src="assets/js/main.js"></script>
+
+  <!-- Form handler -->
+  <script>
+    (function () {
+      const form = document.getElementById('contactForm');
+      const loading = form.querySelector('.loading');
+      const errorMsg = form.querySelector('.error-message');
+      const okMsg = form.querySelector('.sent-message');
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        errorMsg.style.display = 'none';
+        okMsg.style.display = 'none';
+        loading.style.display = 'block';
+
+        try {
+          const formData = new FormData(form);
+          const res = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'Accept': 'application/json' }
+          });
+
+          loading.style.display = 'none';
+
+          if (res.ok) {
+            okMsg.style.display = 'block';
+            form.reset();
+          } else {
+            const data = await res.json().catch(() => ({}));
+            errorMsg.textContent = (data.errors && data.errors[0] && data.errors[0].message)
+              ? data.errors[0].message
+              : 'There was a problem submitting your form.';
+            errorMsg.style.display = 'block';
+          }
+        } catch (err) {
+          loading.style.display = 'none';
+          errorMsg.textContent = 'Network error. Please try again.';
+          errorMsg.style.display = 'block';
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
