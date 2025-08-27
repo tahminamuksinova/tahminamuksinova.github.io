@@ -1,41 +1,31 @@
 <?php
-  /**
-  * Requires the "PHP Email Form" library
-  * The "PHP Email Form" library is available only in the pro version of the template
-  * The library should be uploaded to: vendor/php-email-form/php-email-form.php
-  * For more info and help: https://bootstrapmade.com/php-email-form/
-  */
+header('Content-Type: text/plain; charset=utf-8');
 
-  // Replace contact@example.com with your real receiving email address
-  $receiving_email_address = 'takhmina77@yahoo.com';
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+  http_response_code(405);
+  echo 'Method Not Allowed';
+  exit;
+}
 
-  if( file_exists($php_email_form = '../assets/vendor/php-email-form/php-email-form.php' )) {
-    include( $php_email_form );
-  } else {
-    die( 'Unable to load the "PHP Email Form" Library!');
-  }
+$name    = trim($_POST['name'] ?? '');
+$email   = trim($_POST['email'] ?? '');
+$subject = trim($_POST['subject'] ?? '');
+$message = trim($_POST['message'] ?? '');
 
-  $contact = new PHP_Email_Form;
-  $contact->ajax = true;
-  
-  $contact->to = $receiving_email_address;
-  $contact->from_name = $_POST['name'];
-  $contact->from_email = $_POST['email'];
-  $contact->subject = $_POST['subject'];
+if ($name === '' || $subject === '' || $message === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+  http_response_code(400);
+  echo 'Please fill out the form correctly.';
+  exit;
+}
 
-  // Uncomment below code if you want to use SMTP to send emails. You need to enter your correct SMTP credentials
-  /*
-  $contact->smtp = array(
-    'host' => 'example.com',
-    'username' => 'example',
-    'password' => 'pass',
-    'port' => '587'
-  );
-  */
+$to      = 'takhmina@yahoo.com'; // change if needed
+$mailSub = "Contact: $subject";
+$body    = "Name: $name\nEmail: $email\n\nMessage:\n$message\n";
+$headers = "From: no-reply@yourdomain.tld\r\nReply-To: $email\r\n";
 
-  $contact->add_message( $_POST['name'], 'From');
-  $contact->add_message( $_POST['email'], 'Email');
-  $contact->add_message( $_POST['message'], 'Message', 10);
-
-  echo $contact->send();
-?>
+if (@mail($to, $mailSub, $body, $headers)) {
+  echo 'OK'; // what validate.js expects on success
+} else {
+  http_response_code(500);
+  echo 'Could not send email. Please try again later.';
+}
